@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>给你的小惊喜</title>
+
+<style>
+  :root{
+    --glass: rgba(12,16,28,.56);
+    --line: rgba(255,255,255,.10);
+    --text: rgba(255,255,255,.92);
+    --muted: rgba(255,255,255,.72);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "PingFang SC","Microsoft YaHei", Arial;
+    min-height:100vh;
+    background: radial-gradient(1200px 800px at 20% 10%, rgba(255,192,203,.26), transparent 62%),
+                radial-gradient(1200px 800px at 80% 30%, rgba(173,216,230,.26), transparent 62%),
+                linear-gradient(180deg, #ffffff, #f6f9ff);
+    overflow-x:hidden;
+  }
+
+  .wrap{max-width:980px;margin:0 auto;padding:18px 14px 36px}
+  .card{
+    background: rgba(255,255,255,.90);
+    border-radius:22px;
+    box-shadow:0 14px 55px rgba(0,0,0,.12);
+    overflow:hidden;
+  }
+  .hero{padding:18px}
+  h1{margin:0 0 6px;font-size:26px;letter-spacing:.3px}
+  .sub{margin:0;color:#475569;font-size:14px;line-height:1.7}
+
+  .photos{
+    margin-top:14px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+ .photos img{
+  width:100%;
+  height:auto;              /* 关键：不固定高度 */
+  max-height:520px;         /* 可调，控制最大高度 */
+  object-fit:contain;       /* 不裁剪，完整显示 */
+  border-radius:18px;
+  box-shadow:0 10px 28px rgba(0,0,0,.14);
+  }
+  @media (max-width:380px){ .photos img{height:180px} }
+
+  .qbox{
+    margin-top:14px;
+    padding:14px;
+    border-radius:18px;
+    background: rgba(255,255,255,.82);
+    border: 1px solid rgba(0,0,0,.06);
+  }
+  .question{margin:0 0 10px;font-size:15px;line-height:1.75}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  button{
+    border:0;border-radius:14px;padding:12px 14px;
+    background:#111827;color:#fff;font-size:14px;
+    box-shadow:0 10px 24px rgba(17,24,39,.18);
+    cursor:pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button.secondary{
+    background:#fff;color:#111827;border:1px solid rgba(17,24,39,.12);
+    box-shadow:none;
+  }
+  .tiny{margin-top:10px;font-size:12px;color:#64748b;line-height:1.6}
+
+  /* ====== 场景层 ====== */
+  .scene{
+    position:fixed; inset:0;
+    display:none;
+    z-index:50;
+    color:var(--text);
+  }
+  .scene.show{display:block}
+  canvas#cosmos{position:absolute;inset:0;width:100%;height:100%}
+
+  /* 暗角 + 颗粒（更梦幻） */
+  .vignette{
+    position:absolute; inset:0;
+    background: radial-gradient(1200px 800px at 50% 45%, rgba(0,0,0,.10), rgba(0,0,0,.55));
+    pointer-events:none;
+    mix-blend-mode:multiply;
+  }
+  .grain{
+    position:absolute; inset:-20%;
+    pointer-events:none;
+    opacity:.16;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+    animation: grainMove 6s steps(10) infinite;
+  }
+  @keyframes grainMove{
+    0%{transform:translate(0,0)}
+    20%{transform:translate(-2%,2%)}
+    40%{transform:translate(1%,-1%)}
+    60%{transform:translate(3%,1%)}
+    80%{transform:translate(-1%,-3%)}
+    100%{transform:translate(0,0)}
+  }
+
+  .panel{
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    width:min(92vw, 760px);
+    border-radius:26px;
+    background: var(--glass);
+    border:1px solid var(--line);
+    box-shadow: 0 22px 70px rgba(0,0,0,.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding:18px 16px 16px;
+    overflow:hidden;
+  }
+
+  /* 呼吸光（浪漫氛围） */
+  .glow{
+    position:absolute; inset:-40px;
+    background: radial-gradient(600px 380px at 50% 30%, rgba(150,220,255,.12), transparent 65%),
+                radial-gradient(560px 380px at 45% 70%, rgba(255,140,190,.14), transparent 65%),
+                radial-gradient(520px 360px at 70% 55%, rgba(255,215,170,.10), transparent 70%);
+    filter: blur(12px);
+    animation: breathe 5.8s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes breathe{
+    0%,100%{opacity:.55; transform:scale(1)}
+    50%{opacity:.85; transform:scale(1.02)}
+  }
+
+  .topbar{
+    position:relative;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    margin-bottom:10px;
+    z-index:2;
+  }
+  .badge{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:8px 10px;
+    border-radius:999px;
+    background: rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.10);
+    color:var(--muted);
+    font-size:12px;
+  }
+  .musicBtn{
+    border-radius:999px;
+    padding:10px 12px;
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow:none;
+  }
+
+  .title{
+    position:relative;
+    margin:0 0 8px;
+    font-size:17px;
+    letter-spacing:.4px;
+    z-index:2;
+  }
+
+  .letter{
+    position:relative;
+    margin:0;
+    font-size:15px;
+    line-height:1.95;
+    color: rgba(255,255,255,.92);
+    white-space:pre-wrap;
+    z-index:2;
+  }
+  .line{
+    opacity:0;
+    transform: translateY(10px);
+    animation: lineIn .85s cubic-bezier(.2,.85,.2,1) forwards;
+  }
+  @keyframes lineIn{ to{opacity:1; transform:translateY(0)} }
+
+  .sceneBtns{position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;z-index:2}
+  .note{position:relative;margin-top:10px;font-size:12px;color:rgba(255,255,255,.72);line-height:1.6;z-index:2}
+
+  /* === 点击瞬间：心跳 + 粉金光晕爆开 === */
+  .burstLayer{
+    position:fixed; inset:0;
+    pointer-events:none;
+    z-index:80;
+    overflow:hidden;
+  }
+  .burst{
+    position:absolute;
+    left:50%; top:42%;
+    width:18px; height:18px;
+    transform:translate(-50%,-50%) scale(1);
+    opacity:0;
+  }
+  .burst::before{
+    content:"";
+    position:absolute; inset:-220px;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,160,210,.95) 0%, rgba(255,160,210,.35) 22%, rgba(255,160,210,0) 60%),
+      radial-gradient(circle at 35% 40%, rgba(255,225,170,.75) 0%, rgba(255,225,170,.22) 20%, rgba(255,225,170,0) 55%),
+      radial-gradient(circle at 65% 60%, rgba(195,175,255,.70) 0%, rgba(195,175,255,.18) 20%, rgba(195,175,255,0) 55%);
+    border-radius:999px;
+    opacity:0;
+    filter: blur(0px);
+  }
+  .burst.run{ animation: burstPop 900ms cubic-bezier(.2,.8,.2,1) forwards; }
+  .burst.run::before{ animation: burstGlow 900ms cubic-bezier(.2,.8,.2,1) forwards; }
+
+  @keyframes burstPop{
+    0%{ opacity:0; transform:translate(-50%,-50%) scale(.6); }
+    15%{ opacity:1; transform:translate(-50%,-50%) scale(1.25); }
+    60%{ opacity:.85; transform:translate(-50%,-50%) scale(2.35); }
+    100%{ opacity:0; transform:translate(-50%,-50%) scale(3.15); }
+  }
+  @keyframes burstGlow{
+    0%{ opacity:0; filter:blur(0px); }
+    20%{ opacity:1; filter:blur(0.6px); }
+    100%{ opacity:0; filter:blur(2.2px); }
+  }
+
+  .pulseOnce{ animation: pulseOnce 680ms cubic-bezier(.2,.9,.2,1) both; }
+  @keyframes pulseOnce{
+    0%{ transform:translate(-50%,-50%) scale(1); }
+    35%{ transform:translate(-50%,-50%) scale(1.035); }
+    70%{ transform:translate(-50%,-50%) scale(0.995); }
+    100%{ transform:translate(-50%,-50%) scale(1); }
+  }
+</style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="hero">
+        <h1 id="t1">给你的小惊喜 ✨</h1>
+        <p class="sub" id="t2">点开这一页的时候，我在想：你会不会把它当作一个小小的仪式。</p>
+
+        <div class="photos">
+          <img id="img1" src="photos/us1.jpg" alt="photo 1">
+          <img id="img2" src="photos/us2.jpg" alt="photo 2">
+        </div>
+
+        <div class="qbox">
+          <p class="question" id="q">
+            现在，请你把我送你的 <b>戒指</b> 和 <b>项链</b> 都带上，好吗？🙂
+          </p>
+          <div class="row">
+            <button id="btnYes">已经带上了 💍✨</button>
+            <button class="secondary" id="btnNotYet">还没，我去带上</button>
+          </div>
+          <div class="tiny" id="hint">建议宝宝在微信里点开链接观看；音乐会在兔子宝宝点击按钮后开始播放。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 你自己生成的音乐：audio/bgm.mp3 -->
+  <audio id="bgm" src="audio/bgm.mp3" preload="auto" loop></audio>
+
+  <!-- 爆开特效层 -->
+  <div class="burstLayer" id="burstLayer"></div>
+
+  <!-- 超级浪漫场景 -->
+  <div class="scene" id="scene">
+    <canvas id="cosmos"></canvas>
+    <div class="vignette"></div>
+    <div class="grain"></div>
+
+    <div class="panel">
+      <div class="glow"></div>
+
+      <div class="topbar">
+        <span class="badge">💗 </span>
+        <button class="musicBtn" id="musicToggle" aria-label="music">🔊</button>
+      </div>
+
+      <h2 class="title" id="letterTitle">我写给你的话</h2>
+      <p class="letter" id="letter"></p>
+
+      <div class="sceneBtns">
+        <button id="btnReplay">再读一遍 📖</button>
+        <button class="secondary" id="btnBack">回到照片页</button>
+      </div>
+
+      <div class="note">（1.点进来那一下会“怦”一下，这是我对你的心动信号。2.请宝宝点击右上角的播放，是我为咱们做的歌）</div>
+    </div>
+  </div>
+
+<script>
+  // ========= 配置：你只改这里 =========
+  const CONFIG = {
+    title: "给你的小惊喜 ✨",
+    subtitle: "点开这一页的时候，我在想：你会不会把它当作一个小小的仪式。",
+    question: "现在，请你把我送你的 戒指 和 项链 都带上，好吗？🙂",
+    photo1: "photos/us1.jpg",
+    photo2: "photos/us2.jpg",
+    letterTitle: "我写给你的话",
+    letterText:
+`老婆，生日快乐。
+
+当你戴上戒指和项链的时候，
+我希望你感受到的
+不是礼物本身，
+而是我认真对待你的心。
+
+愿你这一岁：
+开心更轻盈，
+愿望更靠近，
+眼睛一直发光，
+跟我继续热恋。
+
+我会继续用行动证明：
+你是我会坚定选择的爱人。`
+  };
+  // ===================================
+
+  const $ = (id) => document.getElementById(id);
+  $("t1").textContent = CONFIG.title;
+  $("t2").textContent = CONFIG.subtitle;
+  $("q").textContent = CONFIG.question;
+  $("img1").src = CONFIG.photo1;
+  $("img2").src = CONFIG.photo2;
+  $("letterTitle").textContent = CONFIG.letterTitle;
+
+  const scene = $("scene");
+  const letterEl = $("letter");
+  const bgm = $("bgm");
+  const musicToggle = $("musicToggle");
+
+  function tryPlay(){
+    bgm.play().then(()=>{ musicToggle.textContent = "🔊"; }).catch(()=>{});
+  }
+  function tryPause(){
+    bgm.pause(); musicToggle.textContent = "🔈";
+  }
+
+  // 微信环境：尽量提前解锁 + 兜底
+  document.addEventListener("WeixinJSBridgeReady", () => { tryPlay(); }, false);
+  document.addEventListener("click", () => { if(scene.classList.contains("show")) tryPlay(); }, {passive:true});
+
+  $("btnNotYet").addEventListener("click", () => {
+    $("hint").textContent = "好～我在这里等你。带好后点“已经带上了”。";
+  });
+
+  $("btnYes").addEventListener("click", () => {
+    scene.classList.add("show");
+    lockScroll(true);
+    startRomance();
+    romanceBurst();     // ✅ 心跳 + 光晕爆开
+    playLetter();
+    tryPlay();
+  });
+
+  $("btnBack").addEventListener("click", () => {
+    scene.classList.remove("show");
+    lockScroll(false);
+    stopRomance();
+  });
+
+  $("btnReplay").addEventListener("click", () => playLetter());
+
+  musicToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if(bgm.paused) tryPlay(); else tryPause();
+  });
+
+  function lockScroll(on){
+    document.documentElement.style.overflow = on ? "hidden" : "";
+    document.body.style.overflow = on ? "hidden" : "";
+  }
+
+  // 字幕式逐行出现
+  function playLetter(){
+    letterEl.innerHTML = "";
+    const lines = CONFIG.letterText.split("\n");
+    let i = 0;
+    const timer = setInterval(() => {
+      if(!scene.classList.contains("show")) { clearInterval(timer); return; }
+      if(i >= lines.length){ clearInterval(timer); return; }
+      const div = document.createElement("div");
+      div.className = "line";
+      div.textContent = lines[i] === "" ? " " : lines[i];
+      letterEl.appendChild(div);
+      i++;
+    }, 650);
+  }
+
+  // 点击瞬间：爆开 + 面板心跳
+  function romanceBurst(){
+    const layer = $("burstLayer");
+    if(!layer) return;
+
+    const b = document.createElement("div");
+    b.className = "burst";
+    layer.appendChild(b);
+
+    requestAnimationFrame(()=> b.classList.add("run"));
+
+    const panel = document.querySelector(".panel");
+    if(panel){
+      panel.classList.remove("pulseOnce");
+      void panel.offsetWidth;
+      panel.classList.add("pulseOnce");
+    }
+
+    setTimeout(()=> b.remove(), 1100);
+  }
+
+  // ================== 超级浪漫背景（粉金极光 + 桃心星云 + 漂浮爱心粒子 + 流星） ==================
+  const canvas = $("cosmos");
+  const ctx = canvas.getContext("2d");
+  let dpr = 1;
+  let raf = null;
+  let t = 0;
+
+  let stars = [];
+  let hearts = [];
+  let floatHearts = [];
+  let meteors = [];
+
+  function resize(){
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.floor(innerWidth * dpr);
+    canvas.height = Math.floor(innerHeight * dpr);
+    canvas.style.width = innerWidth + "px";
+    canvas.style.height = innerHeight + "px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  window.addEventListener("resize", () => {
+    if(scene.classList.contains("show")){
+      resize();
+      initRomance();
+    }
+  });
+
+  function heartPoint(a){
+    const x = 16 * Math.pow(Math.sin(a), 3);
+    const y = 13 * Math.cos(a) - 5 * Math.cos(2*a) - 2 * Math.cos(3*a) - Math.cos(4*a);
+    return { x: x/34, y: -y/34 };
+  }
+
+  function rand(a,b){ return a + Math.random()*(b-a); }
+  function lerp(a,b,x){ return a + (b-a)*x; }
+  function parseRGBA(str){
+    const m = str.match(/rgba\((\d+),(\d+),(\d+),([0-9.]+)\)/);
+    return {r:+m[1], g:+m[2], b:+m[3], a:+m[4]};
+  }
+  function lerpColor(ca, cb, x){
+    const A = parseRGBA(ca), B = parseRGBA(cb);
+    const r = Math.round(lerp(A.r,B.r,x));
+    const g = Math.round(lerp(A.g,B.g,x));
+    const b = Math.round(lerp(A.b,B.b,x));
+    const a = lerp(A.a,B.a,x);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  function initRomance(){
+    stars = [];
+    hearts = [];
+    floatHearts = [];
+    meteors = [];
+
+    const W = innerWidth, H = innerHeight;
+
+    // 背景星点：少但干净
+    const nStars = Math.floor((W*H)/14000);
+    for(let i=0;i<nStars;i++){
+      stars.push({
+        x: Math.random()*W,
+        y: Math.random()*H,
+        r: rand(0.3, 1.6),
+        a: rand(0.10, 0.55),
+        tw: rand(0.3, 1.2),
+        sp: rand(0.02, 0.10)
+      });
+    }
+
+    // 心形星云点阵（粉金淡紫）
+    const cx = W*0.5, cy = H*0.34;
+    const scale = Math.min(W,H)*0.26;
+    const nHeart = Math.min(900, Math.floor((W*H)/3200));
+
+    for(let i=0;i<nHeart;i++){
+      const a = Math.random()*Math.PI*2;
+      const p = heartPoint(a);
+      const s = Math.pow(Math.random(), 0.40);
+      hearts.push({
+        x: cx + p.x*scale*s + rand(-2,2),
+        y: cy + p.y*scale*s + rand(-2,2),
+        r: rand(0.6, 2.2),
+        a: rand(0.18, 0.70),
+        tw: rand(0.5, 1.4),
+        drift: rand(0.015, 0.06),
+        warm: Math.random()
+      });
+    }
+
+    // 漂浮爱心粒子（少量但很甜）
+    const nFloat = Math.min(22, Math.floor(W/40));
+    for(let i=0;i<nFloat;i++){
+      floatHearts.push(newFloatingHeart());
+    }
+
+    // 初始流星
+    for(let i=0;i<2;i++) spawnMeteor(true);
+  }
+
+  function newFloatingHeart(){
+    const W = innerWidth, H = innerHeight;
+    return {
+      x: rand(0, W),
+      y: rand(H*0.55, H+40),
+      s: rand(10, 22),
+      a: rand(0.10, 0.22),
+      vy: rand(0.15, 0.35),
+      vx: rand(-0.05, 0.05),
+      w: rand(0, Math.PI*2),
+      vw: rand(0.003, 0.010),
+      tint: Math.random()
+    };
+  }
+
+  function spawnMeteor(initial=false){
+    const W = innerWidth, H = innerHeight;
+    const startX = rand(-50, W+50);
+    const startY = rand(0, H*0.28);
+    const len = rand(160, 360);
+    const speed = rand(9, 15);
+    const angle = Math.PI * (0.78 + Math.random()*0.08);
+    meteors.push({
+      x:startX, y:startY,
+      vx: Math.cos(angle)*speed,
+      vy: Math.sin(angle)*speed,
+      len,
+      life: initial ? rand(10,50) : 0,
+      maxLife: initial ? rand(70,110) : rand(45,75)
+    });
+  }
+
+  function drawHeartShape(x,y,size,alpha, mix){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.globalAlpha = alpha;
+
+    const c1 = `rgba(255,140,200,1)`;
+    const c2 = `rgba(255,215,160,1)`;
+    const c3 = `rgba(190,170,255,1)`;
+    const col = mix < 0.5 ? lerpColor(c1,c2,mix*2) : lerpColor(c2,c3,(mix-0.5)*2);
+
+    ctx.fillStyle = col;
+    ctx.beginPath();
+
+    const s = size/16;
+    ctx.scale(s, s);
+    ctx.moveTo(0, 6);
+    ctx.bezierCurveTo(0, 6, -10, -2, -6, -8);
+    ctx.bezierCurveTo(-2, -13, 6, -12, 0, -6);
+    ctx.bezierCurveTo(-6, -12, 2, -13, 6, -8);
+    ctx.bezierCurveTo(10, -2, 0, 6, 0, 6);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawAurora(){
+    const W = innerWidth, H = innerHeight;
+
+    // 深色浪漫底
+    const bg = ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0, "rgba(6,8,18,1)");
+    bg.addColorStop(0.55, "rgba(8,6,18,1)");
+    bg.addColorStop(1, "rgba(2,3,10,1)");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0,0,W,H);
+
+    // 粉金极光：轻微摆动
+    const w1 = 0.5 + 0.5*Math.sin(t*0.35);
+    const w2 = 0.5 + 0.5*Math.sin(t*0.22 + 1.7);
+
+    ctx.globalAlpha = 0.30;
+    let g1 = ctx.createRadialGradient(W*0.30, H*(0.18+0.06*w1), 10, W*0.30, H*(0.18+0.06*w1), Math.min(W,H)*0.70);
+    g1.addColorStop(0, "rgba(255,150,205,.55)");
+    g1.addColorStop(1, "rgba(255,150,205,0)");
+    ctx.fillStyle = g1; ctx.fillRect(0,0,W,H);
+
+    ctx.globalAlpha = 0.24;
+    let g2 = ctx.createRadialGradient(W*0.75, H*(0.48+0.08*w2), 10, W*0.75, H*(0.48+0.08*w2), Math.min(W,H)*0.75);
+    g2.addColorStop(0, "rgba(255,215,170,.45)");
+    g2.addColorStop(1, "rgba(255,215,170,0)");
+    ctx.fillStyle = g2; ctx.fillRect(0,0,W,H);
+
+    ctx.globalAlpha = 0.18;
+    let g3 = ctx.createRadialGradient(W*0.55, H*0.70, 10, W*0.55, H*0.70, Math.min(W,H)*0.75);
+    g3.addColorStop(0, "rgba(190,170,255,.40)");
+    g3.addColorStop(1, "rgba(190,170,255,0)");
+    ctx.fillStyle = g3; ctx.fillRect(0,0,W,H);
+
+    ctx.globalAlpha = 1;
+  }
+
+  function drawStars(){
+    const H = innerHeight;
+    for(const s of stars){
+      const tw = 0.6 + 0.4*Math.sin(t*s.tw + (s.x+s.y)*0.01);
+      ctx.globalAlpha = s.a * tw;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fillStyle = "rgba(220,240,255,1)";
+      ctx.fill();
+      s.y += s.sp;
+      if(s.y > H + 10) s.y = -10;
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawHeartNebula(){
+    for(const h of hearts){
+      const tw = 0.6 + 0.4*Math.sin(t*h.tw + (h.x+h.y)*0.01);
+      const alpha = h.a * tw;
+
+      const col = h.warm < 0.5
+        ? lerpColor("rgba(255,150,210,1)","rgba(255,220,170,1)", h.warm*2)
+        : lerpColor("rgba(255,220,170,1)","rgba(195,175,255,1)", (h.warm-0.5)*2);
+
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(h.x, h.y, h.r, 0, Math.PI*2);
+      ctx.fillStyle = col;
+      ctx.fill();
+
+      // 柔光 halo（浪漫关键）
+      ctx.globalAlpha = alpha * 0.25;
+      ctx.beginPath();
+      ctx.arc(h.x, h.y, h.r*3.2, 0, Math.PI*2);
+      ctx.fillStyle = col;
+      ctx.fill();
+
+      // 缓慢上漂
+      h.y -= h.drift;
+      if(h.y < -20) h.y = innerHeight + 20;
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawFloatingHearts(){
+    const W = innerWidth, H = innerHeight;
+    for(const fh of floatHearts){
+      fh.w += fh.vw;
+      const sway = Math.sin(fh.w) * 0.8;
+
+      drawHeartShape(fh.x + sway, fh.y, fh.s, fh.a, fh.tint);
+
+      fh.y -= fh.vy;
+      fh.x += fh.vx;
+
+      if(fh.y < -40 || fh.x < -60 || fh.x > W+60){
+        Object.assign(fh, newFloatingHeart());
+        fh.y = H + rand(10,120);
+      }
+    }
+  }
+
+  function drawMeteors(){
+    const W = innerWidth, H = innerHeight;
+    if(Math.random() < 0.012 && meteors.length < 5) spawnMeteor(false);
+
+    for(let i=meteors.length-1;i>=0;i--){
+      const m = meteors[i];
+      m.x += m.vx;
+      m.y += m.vy;
+      m.life++;
+
+      const tt = Math.min(1, m.life/m.maxLife);
+      const a = 0.85*(1-tt);
+
+      ctx.globalAlpha = a;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "rgba(255,210,230,1)";
+      ctx.beginPath();
+      ctx.moveTo(m.x, m.y);
+      ctx.lineTo(m.x - m.vx*(m.len/14), m.y - m.vy*(m.len/14));
+      ctx.stroke();
+
+      ctx.globalAlpha = Math.min(1, a + 0.12);
+      ctx.fillStyle = "rgba(255,255,255,1)";
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, 2.3, 0, Math.PI*2);
+      ctx.fill();
+
+      if(m.life > m.maxLife || m.x<-400 || m.x>W+400 || m.y>H+400) meteors.splice(i,1);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function frame(){
+    t += 0.016;
+    drawAurora();
+    drawStars();
+    drawHeartNebula();
+    drawMeteors();
+    drawFloatingHearts();
+    raf = requestAnimationFrame(frame);
+  }
+
+  function startRomance(){
+    resize();
+    initRomance();
+    if(raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(frame);
+  }
+  function stopRomance(){
+    if(raf) cancelAnimationFrame(raf);
+    raf = null;
+  }
+</script>
+</body>
+</html>
