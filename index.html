@@ -184,6 +184,67 @@
   .sceneBtns{position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;z-index:2}
   .note{position:relative;margin-top:10px;font-size:12px;color:rgba(255,255,255,.72);line-height:1.6;z-index:2}
 
+  .heart-chat-wrap{
+    position:relative;
+    z-index:2;
+    margin-top:14px;
+    display:flex;
+    justify-content:center;
+  }
+  .heart-chat{
+    width:min(100%, 540px);
+    aspect-ratio:1.12/1;
+    padding:78px 28px 26px;
+    background: radial-gradient(circle at 30% 20%, rgba(255,220,238,.22), rgba(255,120,170,.10));
+    border:1px solid rgba(255,255,255,.24);
+    clip-path:path("M 270 60 C 230 -5, 120 -5, 120 90 C 120 175, 205 220, 270 286 C 335 220, 420 175, 420 90 C 420 -5, 310 -5, 270 60 Z");
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .chat-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+  .chat-title{font-size:13px;color:rgba(255,255,255,.88);margin:0}
+  .role-select{
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.2);
+    background:rgba(0,0,0,.18);
+    color:#fff;
+    font-size:12px;
+    padding:4px 8px;
+  }
+  .remote-typing{
+    min-height:24px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.12);
+    padding:6px 8px;
+    font-size:12px;
+    color:rgba(255,255,255,.92);
+    background:rgba(0,0,0,.18);
+    margin-bottom:8px;
+  }
+  .chat-log{
+    height:110px;
+    overflow:auto;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(0,0,0,.2);
+    padding:8px;
+    font-size:12px;
+    line-height:1.5;
+  }
+  .msg{margin:0 0 6px}
+  .msg b{color:rgba(255,255,255,.9)}
+  .chat-input-row{display:flex;gap:6px;margin-top:8px}
+  .chat-input{
+    flex:1;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(0,0,0,.2);
+    color:#fff;
+    padding:8px;
+    font-size:12px;
+  }
+  .send-btn{padding:8px 10px;font-size:12px;border-radius:10px;background:rgba(255,255,255,.14)}
+
   /* === 点击瞬间：心跳 + 粉金光晕爆开 === */
   .burstLayer{
     position:fixed; inset:0;
@@ -289,6 +350,24 @@
       </div>
 
       <div class="note">（1.点进来那一下会“怦”一下，这是我对你的心动信号。2.请宝宝点击右上角的播放，是我为咱们做的歌）</div>
+
+      <div class="heart-chat-wrap">
+        <div class="heart-chat">
+          <div class="chat-head">
+            <p class="chat-title">💞 爱心里的聊天窗</p>
+            <select id="chatRole" class="role-select">
+              <option value="her">她的窗口</option>
+              <option value="me">另一个我</option>
+            </select>
+          </div>
+          <div class="remote-typing" id="remoteTyping">另一个我正在输入：…</div>
+          <div class="chat-log" id="chatLog"></div>
+          <div class="chat-input-row">
+            <input id="chatInput" class="chat-input" placeholder="在这里输入浪漫的话…" maxlength="120" />
+            <button id="chatSend" class="send-btn">发送</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -332,6 +411,61 @@
   const letterEl = $("letter");
   const bgm = $("bgm");
   const musicToggle = $("musicToggle");
+  const chatRole = $("chatRole");
+  const chatInput = $("chatInput");
+  const chatLog = $("chatLog");
+  const remoteTyping = $("remoteTyping");
+  const chatSend = $("chatSend");
+
+  const CHAT_ROOM = "romance-heart-room-v1";
+  const SELF_ID = Math.random().toString(36).slice(2,8);
+  const channel = ("BroadcastChannel" in window) ? new BroadcastChannel(CHAT_ROOM) : null;
+
+  function appendMsg(sender, text){
+    const p = document.createElement("p");
+    p.className = "msg";
+    p.innerHTML = `<b>${sender}：</b>${text.replace(/[<>]/g, "")}`;
+    chatLog.appendChild(p);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+  function publish(payload){
+    const data = { ...payload, id: SELF_ID, at: Date.now() };
+    if(channel) channel.postMessage(data);
+    localStorage.setItem(CHAT_ROOM, JSON.stringify(data));
+  }
+  function onIncoming(data){
+    if(!data || data.id === SELF_ID) return;
+    if(data.type === "typing" && chatRole.value === "her"){
+      remoteTyping.textContent = `另一个我正在输入：${data.text || "…"}`;
+    }
+    if(data.type === "message"){
+      appendMsg(data.from === "me" ? "另一个我" : "她", data.text || "");
+    }
+  }
+  if(channel){ channel.onmessage = (e) => onIncoming(e.data); }
+  window.addEventListener("storage", (e) => {
+    if(e.key === CHAT_ROOM && e.newValue){
+      onIncoming(JSON.parse(e.newValue));
+    }
+  });
+
+  chatInput.addEventListener("input", () => {
+    if(chatRole.value === "me"){
+      publish({ type:"typing", text: chatInput.value, from:"me" });
+    }
+  });
+
+  function sendChat(){
+    const text = chatInput.value.trim();
+    if(!text) return;
+    const from = chatRole.value;
+    appendMsg(from === "me" ? "另一个我" : "她", text);
+    publish({ type:"message", text, from });
+    chatInput.value = "";
+    if(from === "me") publish({ type:"typing", text:"", from:"me" });
+  }
+  chatSend.addEventListener("click", sendChat);
+  chatInput.addEventListener("keydown", (e) => { if(e.key === "Enter") sendChat(); });
 
   function tryPlay(){
     bgm.play().then(()=>{ musicToggle.textContent = "🔊"; }).catch(()=>{});
