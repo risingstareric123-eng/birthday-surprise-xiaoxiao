@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "pages/treehole/treehole"
+  ],
+  "window": {
+    "navigationBarTitleText": "恋爱树洞",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#fff8fb",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

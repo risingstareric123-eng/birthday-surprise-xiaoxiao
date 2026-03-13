@@ -1,0 +1,149 @@
+.wrap {
+  padding: 20rpx;
+}
+
+.card {
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.header {
+  margin-bottom: 20rpx;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: 700;
+  margin-bottom: 10rpx;
+}
+
+.sub {
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: #6b7280;
+}
+
+.switch-row {
+  display: flex;
+  gap: 14rpx;
+  margin-bottom: 20rpx;
+}
+
+.door {
+  flex: 1;
+  border-radius: 24rpx;
+  color: #fff;
+  padding: 24rpx;
+  opacity: 0.8;
+}
+
+.door.active {
+  opacity: 1;
+  box-shadow: 0 10rpx 30rpx rgba(15, 23, 42, 0.16);
+}
+
+.left {
+  background: linear-gradient(135deg, #f472b6, #ec4899);
+}
+
+.right {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+}
+
+.door-title {
+  font-size: 31rpx;
+  font-weight: 600;
+  margin-bottom: 6rpx;
+}
+
+.door-desc {
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.panel-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.tip {
+  color: #6b7280;
+  font-size: 24rpx;
+  margin-bottom: 14rpx;
+  line-height: 1.7;
+}
+
+.field {
+  width: 100%;
+  margin-bottom: 12rpx;
+  border-radius: 14rpx;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  padding: 18rpx 20rpx;
+  box-sizing: border-box;
+  font-size: 27rpx;
+}
+
+.picker.placeholder {
+  color: #9ca3af;
+}
+
+.area {
+  min-height: 180rpx;
+}
+
+.btn-row {
+  display: flex;
+  gap: 12rpx;
+  margin: 8rpx 0 16rpx;
+}
+
+.btn {
+  flex: 1;
+  border-radius: 14rpx;
+  background: #111827;
+  color: #fff;
+  font-size: 27rpx;
+  line-height: 2.2;
+}
+
+.btn.light {
+  background: #fff;
+  color: #1f2937;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.empty {
+  color: #6b7280;
+  font-size: 25rpx;
+}
+
+.item {
+  border-radius: 14rpx;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #fff;
+  padding: 18rpx;
+  margin-top: 10rpx;
+}
+
+.meta {
+  color: #6b7280;
+  font-size: 22rpx;
+  margin-bottom: 8rpx;
+}
+
+.item-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.item-content {
+  font-size: 26rpx;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}

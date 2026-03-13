@@ -1,0 +1,19 @@
+{
+  "description": "恋爱树洞微信小程序",
+  "packOptions": {
+    "ignore": []
+  },
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.4.5",
+  "appid": "touristappid",
+  "projectname": "love-tree-hole",
+  "miniprogramRoot": "miniprogram/"
+}

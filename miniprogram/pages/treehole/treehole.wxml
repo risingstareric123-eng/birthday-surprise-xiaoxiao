@@ -1,0 +1,65 @@
+<view class="wrap">
+  <view class="header card">
+    <view class="title">恋爱树洞 · 认真爱，也认真沟通</view>
+    <view class="sub">
+      左边记录美好回忆，右边温柔诉说不满。
+      建议表达方式：事实 → 感受 → 期待。
+    </view>
+  </view>
+
+  <view class="switch-row">
+    <view class="door left {{activeTab === 'memory' ? 'active' : ''}}" bindtap="openMemory">
+      <view class="door-title">💗 回忆小屋（左）</view>
+      <view class="door-desc">记下让你心动和被照顾的瞬间。</view>
+    </view>
+    <view class="door right {{activeTab === 'complaint' ? 'active' : ''}}" bindtap="openComplaint">
+      <view class="door-title">🌧️ 诉说角落（右）</view>
+      <view class="door-desc">说出不舒服，避免攻击，给出期待。</view>
+    </view>
+  </view>
+
+  <view wx:if="{{activeTab === 'memory'}}" class="card panel">
+    <view class="panel-title">💗 美好回忆瞬间</view>
+    <view class="tip">越具体越珍贵，比如“今天你把伞偏向我这边”。</view>
+
+    <input class="field" placeholder="回忆标题" value="{{memoryForm.title}}" data-field="title" bindinput="onMemoryInput" />
+    <textarea class="field area" placeholder="写下这个瞬间..." value="{{memoryForm.content}}" data-field="content" bindinput="onMemoryInput" />
+
+    <view class="btn-row">
+      <button class="btn" bindtap="submitMemory">保存回忆</button>
+      <button class="btn light" bindtap="clearMemory">清空回忆</button>
+    </view>
+
+    <view wx:if="{{!memoryList.length}}" class="empty">还没有回忆，写下第一条甜蜜吧。</view>
+    <view wx:for="{{memoryList}}" wx:key="time" class="item">
+      <view class="meta">{{item.time}}</view>
+      <view class="item-title">{{item.title}}</view>
+      <view class="item-content">{{item.content}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{activeTab === 'complaint'}}" class="card panel">
+    <view class="panel-title">🌧️ 对方让我不舒服的时刻</view>
+    <view class="tip">先描述事实，再说感受，最后说明你希望对方怎么做。</view>
+
+    <input class="field" placeholder="不满主题" value="{{complaintForm.title}}" data-field="title" bindinput="onComplaintInput" />
+    <picker mode="selector" range="{{moods}}" bindchange="onMoodChange" value="{{moodIndex}}">
+      <view class="field picker {{moodIndex < 0 ? 'placeholder' : ''}}">
+        {{moodIndex < 0 ? '选择你现在的情绪' : moods[moodIndex]}}
+      </view>
+    </picker>
+    <textarea class="field area" placeholder="写下事实 + 感受 + 期待..." value="{{complaintForm.content}}" data-field="content" bindinput="onComplaintInput" />
+
+    <view class="btn-row">
+      <button class="btn" bindtap="submitComplaint">保存诉说</button>
+      <button class="btn light" bindtap="clearComplaint">清空诉说</button>
+    </view>
+
+    <view wx:if="{{!complaintList.length}}" class="empty">还没有诉说记录，希望你们都被温柔对待。</view>
+    <view wx:for="{{complaintList}}" wx:key="time" class="item">
+      <view class="meta">{{item.time}} · 情绪：{{item.mood}}</view>
+      <view class="item-title">{{item.title}}</view>
+      <view class="item-content">{{item.content}}</view>
+    </view>
+  </view>
+</view>
